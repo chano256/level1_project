@@ -5,11 +5,11 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
+        <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+
         <title>{{ config('app.name', 'TestProject') }}</title>
     </head>
     <body>
-        <h1>Index page</h1>
-
-        <p>This is the home page.</p>
+        @yield('content')
     </body>
 </html>

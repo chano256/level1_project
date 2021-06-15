@@ -13,17 +13,24 @@ class PagesController extends Controller
      */
     public function index()
     {
-        return view('index');
+        $title = 'Welcome to laravel class !';
+        //return view('pages.index', compact('title'));$title = 'Welcome to Laravel Class!';
+        return view('pages.index')->with('title', $title);
     }
 
     public function about()
     {
-        return view('about');
+        $title = 'About laravel class !';
+        return view('pages.about')->with('title', $title);
     }
 
     public function services()
     {
-        return view('services');
+        $data = array(
+            'title' => 'Services class',
+            'services' => ['Web dev', 'backend dev', 'frontewnd dev']
+        );
+        return view('pages.services')->with($data);
     }
 
     /**
