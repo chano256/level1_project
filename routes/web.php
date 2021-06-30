@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -19,13 +21,16 @@ Route::get('/index', 'PagesController@index');
 Route::get('/about', 'PagesController@about');
 Route::get('/services', 'PagesController@services');
 
+Route::resource('posts', 'PostsController');
+
 /**
  * Route::get('/home', function () {
  * return view('index');
  * });
-
-
- * Route::get('user/{id}', function ($id) {
- * return 'This is user'.$id;
- * });
  */
+
+Route::get('user/{name}/{id}', function ($name, $id) {
+    return 'This is user ' . $name . ' with id = ' . $id;
+});
+
+Route::get('/home', 'HomeController@index');
