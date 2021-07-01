@@ -5,9 +5,21 @@ namespace level1_project\Http\Controllers;
 use Illuminate\Http\Request;
 use level1_project\Post;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class PostsController extends Controller
 {
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        // Passing middleware for only auth users accepting only index and show pages
+        $this->middleware('auth', ['except' => ['index', 'show']]);
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -45,14 +57,37 @@ class PostsController extends Controller
         $this->validate($request, 
             [
                 'title' => 'required',
-                'boday' => 'required'
+                'body' => 'required',
+                'cover_image' => 'image|nullable|max:1999'
             ]
         );
+
+        // Handle file upload
+        if ($request->hasFile('cover_image')) {
+            // Get file name with extension
+            $fileNameWithExt = $request->file('cover_image')->getClientOriginalName();
+
+            // Get file name with extension
+            $fileName = pathinfo($fileNameWithExt, PATHINFO_FILENAME);
+
+            // Get file name with extension
+            $extension = $request->file('cover_image')->getClientOriginalExtension();
+            
+            // File name to  store
+            $fileNameToStore = $fileName . '_' . time() . '.' . $extension;
+
+            // Upload image
+            $path = $request->file('cover_image')->storeAs('public/cover_images', $fileNameToStore);
+
+        } else {
+            $fileNameToStore = 'noimage.jpg';
+        }
 
         $post = new Post();
         $post->title = $request->input('title');
         $post->body = $request->input('body');
         $post->user_id = auth()->user()->id;
+        $post->cover_image = $fileNameToStore;
         $post->save();
 
         return redirect('/posts')->with('success', 'Post Created');
@@ -79,6 +114,11 @@ class PostsController extends Controller
     {
         $post = Post::find($id);
         
+        // Check for correct user
+        if (auth()->user()->id !== $post->user_id) {
+            return view('/posts')->with('error', 'Unauthorized page');
+        }
+
         return view('posts.edit')->with('post', $post);
     }
 
@@ -94,9 +134,29 @@ class PostsController extends Controller
         $this->validate($request, 
             [
                 'title' => 'required',
-                'boday' => 'required'
+                'boday' => 'required',
+                'cover_image' => 'image|nullable|max:1999'
             ]
         );
+
+        // Handle file upload
+        if ($request->hasFile('cover_image')) {
+            // Get file name with extension
+            $fileNameWithExt = $request->file('cover_image')->getClientOriginalName();
+
+            // Get file name with extension
+            $fileName = pathinfo($fileNameWithExt, PATHINFO_FILENAME);
+
+            // Get file name with extension
+            $extension = $request->file('cover_image')->getClientOriginalExtension();
+            
+            // File name to  store
+            $fileNameToStore = $fileName . '_' . time() . '.' . $extension;
+
+            // Upload image
+            $path = $request->file('cover_image')->storeAs('public/cover_images', $fileNameToStore);
+
+        }
 
         $post = Post::find($id);
         $post->title = $request->input('title');
@@ -115,8 +175,17 @@ class PostsController extends Controller
     public function destroy($id)
     {
         $post = Post::find($id);
-        $post->delete();
 
+        // Check for correct user
+        if (auth()->user()->id !== $post->user_id) {
+            return view('/posts')->with('error', 'Unauthorized page');
+        }
+
+        if ($post->cover_image != 'noimage.jpg') {
+            Storage::delete('public/cover_images' . $post->cover_image);
+        }
+
+        $post->delete();
         return redirect('/posts')->with('success', 'Post Deleted');
     }
 }
